@@ -21,15 +21,26 @@
         catch (_) { return fallback; }
     }
 
-    async function loadQuranData() {
-        if (quranData && chapters) return;
-        const [textResponse, metaResponse] = await Promise.all([fetch(DATA_URL), fetch(META_URL)]);
-        if (!textResponse.ok || !metaResponse.ok) throw new Error('تعذر تحميل ملفات المصحف');
-        quranData = await textResponse.json();
+    async function loadQuranMeta() {
+        if (chapters) return;
+        const metaResponse = await fetch(META_URL);
+        if (!metaResponse.ok) throw new Error('تعذر تحميل فهرس المصحف');
         const metadata = await metaResponse.json();
         chapters = metadata.chapters;
+        if (chapters.length !== 114) throw new Error('فشل التحقق من فهرس السور');
+    }
+
+    async function loadQuranText() {
+        if (quranData) return;
+        const textResponse = await fetch(DATA_URL);
+        if (!textResponse.ok) throw new Error('تعذر تحميل نص القرآن');
+        quranData = await textResponse.json();
         const verses = Object.values(quranData).reduce((sum, surah) => sum + surah.length, 0);
-        if (chapters.length !== 114 || verses !== 6236) throw new Error('فشل التحقق من اكتمال نص القرآن');
+        if (verses !== 6236) throw new Error('فشل التحقق من اكتمال نص القرآن');
+    }
+
+    async function loadQuranData() {
+        await Promise.all([loadQuranMeta(), loadQuranText()]);
     }
 
     function escapeHtml(value) {
@@ -56,7 +67,7 @@
         content.className = 'fade-in quran-page';
         content.innerHTML = loadingMarkup();
         try {
-            await loadQuranData();
+            await loadQuranMeta();
             renderQuranHome();
         } catch (error) {
             console.error(error);
@@ -107,8 +118,14 @@
             <p class="quran-attribution">النص القرآني من مشروع Tanzil، نُقل دون تغيير. الإصدار v${window.ZAD_APP?.version || '4.9.0-beta.1'}</p>`;
     }
 
-    function openSurah(surahId, ayahNumber = 1) {
-        if (!quranData || !chapters) return renderQuran();
+    async function openSurah(surahId, ayahNumber = 1) {
+        if (!chapters) await loadQuranMeta();
+        if (!quranData) {
+            const content = document.getElementById('page-content');
+            if (content) content.innerHTML = loadingMarkup();
+            try { await loadQuranText(); }
+            catch (error) { if (content) content.innerHTML = errorMarkup(error); return; }
+        }
         const chapter = chapters[surahId - 1];
         const verses = quranData[String(surahId)] || [];
         const opening = splitOpeningBasmala(verses[0], surahId);
@@ -198,7 +215,9 @@
         openSurah(surah, ayah);
     }
 
-    function showQuranBookmarks() {
+    async function showQuranBookmarks() {
+        if (!chapters) await loadQuranMeta();
+        if (!quranData) await loadQuranText();
         const content = document.getElementById('page-content');
         const bookmarks = readJson(KEYS.bookmarks, []);
         content.innerHTML = `<div class="reader-toolbar"><button onclick="renderQuranHome()"><i class="fas fa-arrow-right"></i><span>القرآن</span></button><div><strong>العلامات المحفوظة</strong><small>${bookmarks.length} علامة</small></div><span></span></div>
@@ -216,7 +235,9 @@
         document.getElementById('ayah-search')?.focus();
     }
 
-    function searchQuranText(value) {
+    async function searchQuranText(value) {
+        if (!chapters) await loadQuranMeta();
+        if (!quranData) await loadQuranText();
         const box = document.getElementById('quran-search-results');
         const query = normalizeArabic(value);
         if (query.length < 2) { box.innerHTML = '<div class="quran-empty">اكتب حرفين على الأقل.</div>'; return; }
