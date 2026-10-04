@@ -69,6 +69,7 @@
     }
     function applyTimes(times) {
         PrayerTimes = prayerMap.map(([name, key]) => ({ name, time: cleanTime(times[key]) }));
+        window.PrayerTimes = PrayerTimes;
     }
     async function fetchTimes(loc, force) {
         const s = settings(); const cached = safeJSON(CACHE_KEY);
@@ -96,7 +97,7 @@
             const cached = safeJSON(CACHE_KEY);
             const samePlace = !loc || (Math.abs(Number(cached?.lat) - Number(loc.lat)) < .02 && Math.abs(Number(cached?.lon) - Number(loc.lon)) < .02);
             if (cached?.times && samePlace) { cached.stale = true; applyTimes(cached.times); if (AppState.currentTab === 'home') window.renderHome?.(); }
-            else if (loc) PrayerTimes = prayerMap.map(([name]) => ({ name, time: '--:--' }));
+            else if (loc) { PrayerTimes = prayerMap.map(([name]) => ({ name, time: '--:--' })); window.PrayerTimes = PrayerTimes; }
             throw error;
         }
     }
@@ -224,7 +225,18 @@
         prayerMap.forEach(([,k])=>next.offsets[k]=Math.max(-30,Math.min(30,Number(document.getElementById(`offset-${k}`).value)||0)));
         saveSettings(next); try { await updatePrayerTimesV42(true); alert('تم حفظ الإعدادات وتحديث المواقيت.'); } catch(e) { saveSettings(old); alert(`تعذر التحديث: ${e.message}\nأعيدت الإعدادات السابقة.`); } renderSettingsV42();
     }
-    window.renderHome = renderHomeV42; window.renderSettings = renderSettingsV42; window.updatePrayerTimes = updatePrayerTimesV42;
+    function stopCompass() {
+        if (compassHandler) {
+            window.removeEventListener('deviceorientationabsolute', compassHandler, true);
+            window.removeEventListener('deviceorientation', compassHandler, true);
+            compassHandler = null;
+        }
+        if (compassTimeout) { clearTimeout(compassTimeout); compassTimeout = null; }
+    }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stopCompass(); });
+    window.stopQiblaCompass = stopCompass;
+    window.renderHome = function() { stopCompass(); renderHomeV42(); };
+    window.renderSettings = renderSettingsV42; window.updatePrayerTimes = updatePrayerTimesV42;
     window.updatePrayerTimesWithFeedback = updateWithFeedback; window.renderQibla = renderQibla; window.startQiblaCompass = startCompass; window.savePrayerSettings = savePrayerSettingsUI;
     const initialCache = safeJSON(CACHE_KEY);
     const initialLocation = currentLocation();
@@ -233,5 +245,6 @@
     else {
         localStorage.removeItem('cached_prayer_times');
         PrayerTimes = prayerMap.map(([name]) => ({ name, time: '--:--' }));
+        window.PrayerTimes = PrayerTimes;
     }
 })();

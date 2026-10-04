@@ -4,7 +4,7 @@
   const DATA='quran-data/surah-reciters.json',CHAPTERS='quran-data/chapters.json',CACHE='zad-quran-surah-audio-v461';
   const KEYS={selected:'zad_surah_reciter_selected',downloads:'zad_surah_audio_downloads',last:'zad_surah_audio_last',settings:'zad_surah_audio_settings',favorites:'zad_surah_reciter_favorites',recent:'zad_surah_reciter_recent'};
   const DEFAULTS={repeat:1,speed:1,sleep:0,autoNext:true};
-  let catalog=[],chapters=[],audio=null,currentSurah=1,repetitions=0,sleepTimer=0;
+  let catalog=[],chapters=[],audio=null,currentSurah=1,repetitions=0,sleepTimer=0,saveTimer=0;
   const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback}catch(_){return fallback}};
   const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch(_){}};
   const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -73,7 +73,7 @@
     if(time)time.textContent=`${formatDuration(player.currentTime)} / ${formatDuration(player.duration)}`;
     if(button)button.innerHTML=`<i class="fas fa-${player.paused?'play':'pause'}"></i>`;
     if(title)title.textContent=`سورة ${chapters[currentSurah-1]?.name||currentSurah}`;
-    if(player.src)write(KEYS.last,{id:selected()?.id,surah:currentSurah,seconds:player.currentTime,updatedAt:Date.now()});
+    if(player.src&&!saveTimer){saveTimer=setTimeout(()=>{saveTimer=0;write(KEYS.last,{id:selected()?.id,surah:currentSurah,seconds:player.currentTime,updatedAt:Date.now()})},3000)}
     window.dispatchEvent(new CustomEvent('zad:audio-state',{detail:{kind:'full',playing:!player.paused,currentTime:player.currentTime||0,duration:Number.isFinite(player.duration)?player.duration:0,title:`سورة ${chapters[currentSurah-1]?.name||currentSurah}`,subtitle:selected()?.name||'المصحف الكامل'}}));
   }
   function formatDuration(seconds){if(!Number.isFinite(seconds))return'00:00';const value=Math.max(0,Math.floor(seconds));return`${String(Math.floor(value/60)).padStart(2,'0')}:${String(value%60).padStart(2,'0')}`}
