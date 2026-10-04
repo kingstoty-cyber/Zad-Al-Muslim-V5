@@ -225,7 +225,18 @@
         prayerMap.forEach(([,k])=>next.offsets[k]=Math.max(-30,Math.min(30,Number(document.getElementById(`offset-${k}`).value)||0)));
         saveSettings(next); try { await updatePrayerTimesV42(true); alert('تم حفظ الإعدادات وتحديث المواقيت.'); } catch(e) { saveSettings(old); alert(`تعذر التحديث: ${e.message}\nأعيدت الإعدادات السابقة.`); } renderSettingsV42();
     }
-    window.renderHome = renderHomeV42; window.renderSettings = renderSettingsV42; window.updatePrayerTimes = updatePrayerTimesV42;
+    function stopCompass() {
+        if (compassHandler) {
+            window.removeEventListener('deviceorientationabsolute', compassHandler, true);
+            window.removeEventListener('deviceorientation', compassHandler, true);
+            compassHandler = null;
+        }
+        if (compassTimeout) { clearTimeout(compassTimeout); compassTimeout = null; }
+    }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stopCompass(); });
+    window.stopQiblaCompass = stopCompass;
+    window.renderHome = function() { stopCompass(); renderHomeV42(); };
+    window.renderSettings = renderSettingsV42; window.updatePrayerTimes = updatePrayerTimesV42;
     window.updatePrayerTimesWithFeedback = updateWithFeedback; window.renderQibla = renderQibla; window.startQiblaCompass = startCompass; window.savePrayerSettings = savePrayerSettingsUI;
     const initialCache = safeJSON(CACHE_KEY);
     const initialLocation = currentLocation();
