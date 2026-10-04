@@ -55,6 +55,6 @@
 
   const baseAppHome=window.renderHome;
   function renderAppHomeV44(){baseAppHome();const plan=currentPlan();if(!plan?.active)return;const dashboard=document.querySelector('.home-dashboard');dashboard?.insertAdjacentHTML('afterend',wirdSummaryMarkup())}
-  window.renderQuran=renderQuranV44;window.renderQuranHome=renderQuranHomeV44;window.filterSurahs=filterSurahsV44;window.renderQuranIndexes=renderIndexes;window.jumpIndex=jumpIndex;window.showAyahJump=showAyahJump;window.updateAyahLimit=updateAyahLimit;window.goToAyah=goToAyah;window.renderWirdPlanner=renderWirdPlanner;window.startWirdPlan=startPlan;window.openTodayWird=openToday;window.completeTodayWird=completeToday;window.cancelWirdPlan=cancelPlan;window.renderHome=renderAppHomeV44;
+  window.getWirdSummaryMarkup=wirdSummaryMarkup;window.renderQuran=renderQuranV44;window.renderQuranHome=renderQuranHomeV44;window.filterSurahs=filterSurahsV44;window.renderQuranIndexes=renderIndexes;window.jumpIndex=jumpIndex;window.showAyahJump=showAyahJump;window.updateAyahLimit=updateAyahLimit;window.goToAyah=goToAyah;window.renderWirdPlanner=renderWirdPlanner;window.startWirdPlan=startPlan;window.openTodayWird=openToday;window.completeTodayWird=completeToday;window.cancelWirdPlan=cancelPlan;window.renderHome=renderAppHomeV44;
   setInterval(checkWirdReminder,60000);setTimeout(checkWirdReminder,5000);
 })();

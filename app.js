@@ -3,6 +3,7 @@
 
 // مواقيت الصلاة (سيتم تحديثها تلقائياً)
 let PrayerTimes = [...Prayers];
+window.PrayerTimes = PrayerTimes;
 
 // ==================== إضافة: موقع يدوي وادوات الكاش اليومي ====================
 
@@ -451,6 +452,7 @@ async function updatePrayerTimes() {
             { name: "المغرب", time: times.maghrib },
             { name: "العشاء", time: times.isha }
         ];
+        window.PrayerTimes = PrayerTimes;
         
         console.log("تم تحديث مواقيت الصلاة:", PrayerTimes);
         
@@ -1580,6 +1582,7 @@ window.onload = async () => {
                         { name: "المغرب", time: times.maghrib },
                         { name: "العشاء", time: times.isha }
                     ];
+                    window.PrayerTimes = PrayerTimes;
                 }
             }
             console.log("اكتمل تحميل التطبيق");

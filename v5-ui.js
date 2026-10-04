@@ -17,9 +17,13 @@
     return total ? Math.round(done / total * 100) : 0;
   }
 
+  function getPrayerList() {
+    return window.PrayerTimes || (typeof PrayerTimes !== 'undefined' ? PrayerTimes : []);
+  }
+
   function nextPrayer() {
     const now = new Date();
-    const prayers = (window.PrayerTimes || []).filter(item => item.name !== 'الشروق' && /^\d\d:\d\d$/.test(item.time || ''));
+    const prayers = getPrayerList().filter(item => item.name !== 'الشروق' && /^\d\d:\d\d$/.test(item.time || ''));
     for (const prayer of prayers) {
       const [hours, minutes] = prayer.time.split(':').map(Number);
       const date = new Date(now); date.setHours(hours, minutes, 0, 0);
@@ -45,6 +49,7 @@
     const adhkarDone = dailyAdhkarProgress();
     const location = (() => { try { return JSON.parse(localStorage.getItem('user_location') || 'null'); } catch (_) { return null; } })();
     const locationName = location?.city || 'حدد موقعك';
+    const wirdSummary = window.getWirdSummaryMarkup?.() || '';
     content.innerHTML = `
       <section class="visual-hero home-visual">
         <div class="visual-overlay">
@@ -59,6 +64,7 @@
         <div><small>الصلاة القادمة</small><strong>${esc(next?.name || 'لم تُحمّل المواقيت')}</strong><span>${next ? arabicTime(next.time) : esc(locationName)}</span></div>
         <button onclick="renderPrayerHub()">عرض المواقيت</button>
       </section>
+      ${wirdSummary}
       <section class="quick-grid">
         <button onclick="switchTab('adhkar')"><i class="fas fa-hands-praying"></i><strong>أذكار اليوم</strong><small>${adhkarDone}% مكتمل</small></button>
         <button onclick="switchTab('quran')"><i class="fas fa-book-quran"></i><strong>ورد القرآن</strong><small>تابع قراءتك</small></button>
@@ -109,10 +115,11 @@
     const content = document.getElementById('page-content');
     const next = nextPrayer();
     const names = ['الفجر','الظهر','العصر','المغرب','العشاء'];
+    const prayerList = getPrayerList();
     content.className = 'fade-in prayer-hub-v5';
     content.innerHTML = `<header class="page-heading"><div><span class="section-kicker">مواقيت دقيقة</span><h2>الصلاة والقبلة</h2></div><button class="icon-button" onclick="switchTab('settings')"><i class="fas fa-gear"></i></button></header>
       <section class="visual-hero prayer-visual"><div class="visual-overlay"><span class="eyebrow">الصلاة القادمة</span><h2>${esc(next?.name || 'حدد موقعك')}</h2><p>${next ? arabicTime(next.time) : 'لتحديث المواقيت'}</p></div></section>
-      <div class="prayer-timeline">${names.map(name => { const item = PrayerTimes.find(p => p.name === name); return `<div class="${next?.name === name ? 'active' : ''}"><i></i><strong>${name}</strong><span>${arabicTime(item?.time)}</span></div>`; }).join('')}</div>
+      <div class="prayer-timeline">${names.map(name => { const item = prayerList.find(p => p.name === name); return `<div class="${next?.name === name ? 'active' : ''}"><i></i><strong>${name}</strong><span>${arabicTime(item?.time)}</span></div>`; }).join('')}</div>
       <div class="prayer-hub-actions"><button onclick="renderQibla()"><i class="fas fa-compass"></i><strong>اتجاه القبلة</strong><small>بوصلة من موقعك الحالي</small></button><button onclick="renderPrayerTracking()"><i class="fas fa-calendar-check"></i><strong>متابعة الصلوات</strong><small>${AppState.prayerLog.list.filter(Boolean).length} من 5 اليوم</small></button></div>
       <button class="location-row" onclick="document.getElementById('manual-toggle').click()"><i class="fas fa-location-dot"></i><span>تحديد أو تعديل الموقع</span><i class="fas fa-chevron-left"></i></button>`;
   }

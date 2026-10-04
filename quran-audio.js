@@ -222,8 +222,12 @@
     function onTimeUpdate() {
         updateProgress();
         updateControls();
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => writeJson(KEYS.last, {surah: state.surah, ayah: state.ayah, seconds: getAudio().currentTime, reciter: settings.reciter, updatedAt: Date.now()}), 500);
+        if (!saveTimer) {
+            saveTimer = setTimeout(() => {
+                saveTimer = 0;
+                writeJson(KEYS.last, {surah: state.surah, ayah: state.ayah, seconds: getAudio().currentTime, reciter: settings.reciter, updatedAt: Date.now()});
+            }, 3000);
+        }
     }
 
     function updateProgress() {
@@ -491,7 +495,11 @@
 
     const previousHook = window.onQuranSurahOpened;
     const baseSettings = window.renderSettings;
-    window.onQuranSurahOpened = async payload => { stopAudio(); previousHook?.(payload); await loadReciters(); injectPlayer(payload); };
+    window.onQuranSurahOpened = async payload => {
+        try { stopAudio(); } catch (e) { console.error(e); }
+        try { await previousHook?.(payload); } catch (e) { console.error(e); }
+        try { await loadReciters(); injectPlayer(payload); } catch (e) { console.error(e); }
+    };
     window.playQuranAyah = (surah, ayah) => playAyah(Number(surah), Number(ayah), false);
     window.toggleQuranAudio = toggleAudio;
     window.playQuranSurah = playSurah;

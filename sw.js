@@ -6,7 +6,6 @@ const APP_ASSETS = [
   './assets/css/fontawesome.min.css', './assets/css/local-fonts.css',
   './assets/webfonts/fa-solid-900.woff2', './assets/webfonts/fa-regular-400.woff2',
   './assets/fonts/amiri.ttf', './assets/fonts/tajawal-300.ttf', './assets/fonts/tajawal-500.ttf', './assets/fonts/tajawal-800.ttf',
-  './assets/images/home-hero.webp', './assets/images/adhkar-morning.webp', './assets/images/quran-hero.webp', './assets/images/audio-hero.webp',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
   './quran-data/chapters.json', './quran-data/uthmani.json', './quran-data/navigation.json', './quran-data/reciters.json', './quran-data/surah-reciters.json', './QURAN_DATA_LICENSE.txt', './THIRD_PARTY_ASSETS.txt'
 ];

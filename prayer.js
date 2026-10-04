@@ -69,6 +69,7 @@
     }
     function applyTimes(times) {
         PrayerTimes = prayerMap.map(([name, key]) => ({ name, time: cleanTime(times[key]) }));
+        window.PrayerTimes = PrayerTimes;
     }
     async function fetchTimes(loc, force) {
         const s = settings(); const cached = safeJSON(CACHE_KEY);
@@ -96,7 +97,7 @@
             const cached = safeJSON(CACHE_KEY);
             const samePlace = !loc || (Math.abs(Number(cached?.lat) - Number(loc.lat)) < .02 && Math.abs(Number(cached?.lon) - Number(loc.lon)) < .02);
             if (cached?.times && samePlace) { cached.stale = true; applyTimes(cached.times); if (AppState.currentTab === 'home') window.renderHome?.(); }
-            else if (loc) PrayerTimes = prayerMap.map(([name]) => ({ name, time: '--:--' }));
+            else if (loc) { PrayerTimes = prayerMap.map(([name]) => ({ name, time: '--:--' })); window.PrayerTimes = PrayerTimes; }
             throw error;
         }
     }
@@ -233,5 +234,6 @@
     else {
         localStorage.removeItem('cached_prayer_times');
         PrayerTimes = prayerMap.map(([name]) => ({ name, time: '--:--' }));
+        window.PrayerTimes = PrayerTimes;
     }
 })();
